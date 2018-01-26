@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd" >
+<configuration>
+
+  <!-- 加载配置文件 -->
+  <!-- MyBatis 会按照下面的顺序来加载属性 
+    在properties元素体内定义的属性首先被加载
+    然后读取properties元素中resource或url加载的属性
+    最后读取parameterType传递的属性
+    会覆盖已读取的同名属性(不要有重名的)
+  -->
+  <properties resource="jdbc.properties" >
+    <!-- <property name="driver" value="driverclass"/> 这里不建议添加任何属性-->
+  </properties>
+  
+  
+  
+  
+  
+  <!-- settings元素调整运行参数需要的时候设置不需要不要乱设 -->
+  <settings>
+    <!-- 打开懒惰记载开关 -->
+    <setting name="lazyLoadingEnabled" value="true"/> <!-- 使用延时加载相关配置 -->
+    <!-- 将积极加载改为消极加载即按需加载 -->
+    <setting name="aggressiveLazyLoading" value="false"/> <!-- 使用延时加载相关配置 -->
+    
+    <!-- 开启二级缓存的总开关 二级缓存的范围是mapper还要在mapper设置开启二级缓存, pojo类要实现序列化接口 -->
+    <setting name="cacheEnabled" value="true"/>
+  </settings>
+    
+  
+  
+  
+  
+  <!-- 别名 给parameterType 和resultType定义别名 在mapper.xml中使用别名 方便开发(MyBatis有一些内置的别名) -->
+  <typeAliases>
+    <!-- <typeAlias type="com.ek.mybatis.pojo.UserInfo" alias="user"/> 定义单个别名-->
+    <package name="com.ek.mybatis.day1.pojo"/><!-- 批量别名的定义 别名就是类名(首字母大小写都行) -->
+    
+    <package name="com.ek.mybatis.day2.one2one.resulttype.pojo"/>
+    <package name="com.ek.mybatis.day2.one2one.resultmap.pojo"/>
+    
+    <package name="com.ek.mybatis.day2.one2many.pojo"/>
+    
+    <package name="com.ek.mybatis.day2.many2many.pojo"/>
+    
+    <package name="com.ek.mybatis.day2.lazyloading.pojo"/>
+    
+    <package name="com.ek.mybatis.day2.cache.level1.pojo"/>
+    
+    <package name="com.ek.mybatis.day2.cache.level2.pojo"/>
+  </typeAliases>
+  
+  
+  
+  
+  
+  <!-- 类型处理器 完成jdbc类型和java类型的转换 (一般不需要自定义, 通常的类型内置的都有了) -->
+  <!-- <typeHandlers></typeHandlers> -->
+  
+  
+  
+  
+  
+  <!-- mybatis单独使用时配置, 和spring整合后 environments配置将废除 -->
+  <environments default="development">
+    <environment id="development">
+      <!-- 使用JDBC管理事务 , 事务控制有mybatis管理-->
+      <transactionManager type="JDBC"></transactionManager>
+      <!-- 数据库连接池 , 有mybatis管理 -->
+      <dataSource type="POOLED">
+        <property name="driver" value="${jdbc.driverclass}"/>
+        <property name="url" value="${jdbc.jdbcurl}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+      </dataSource>
+    </environment>
+  </environments>
+  
+  
+  
+  
+  
+  <!-- 映射配置 
+    使用dao方式开发时加载映射文件: 用resource加载类路径下的单个映射文件 url加载一个地址路径下的单个映射文件
+    mapper代理方式开发时 要用calss加载mapper接口的方式加载映射文件(需要一些规范看下面)
+  --> 
+  <mappers>
+    <mapper resource="UserInfo.xml"/>
+    <!-- mapper代理方式加载需要mapper接口类名和mapper.xml文件名保持一致,且在同一目录 -->
+    <mapper class="com.ek.mybatis.day1.mapper.IUserInfoMapper"/>
+    
+    <!-- mapper方式批量加载 规范和class加载时一样 但是用package标签 -->
+    <package name="com.ek.mybatis.day2.one2one.resulttype.mapper"/>
+    <package name="com.ek.mybatis.day2.one2one.resultmap.mapper"/>
+    
+    <package name="com.ek.mybatis.day2.one2many.mapper"/>
+    
+    <package name="com.ek.mybatis.day2.many2many.mapper"/>
+    
+    <package name="com.ek.mybatis.day2.lazyloading.mapper"/>
+    
+    <package name="com.ek.mybatis.day2.cache.level1.mapper"/>
+    
+    <package name="com.ek.mybatis.day2.cache.level2.mapper"/>
+  </mappers>
+</configuration>

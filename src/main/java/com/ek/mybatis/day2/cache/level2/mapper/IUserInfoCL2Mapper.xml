@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ek.mybatis.day2.cache.level2.mapper.IUserInfoCL2Mapper">
+  
+  <!-- 开启二级缓存
+    1. 在SqlMapConfig.xml 开启二级缓存总开关
+    2. 在mapper中配置cache (二级缓存是用namespace区分的)
+    3. pojo需要实现序列化接口
+   -->
+   
+   
+  <!-- type="org.apache.ibatis.cache.impl.PerpetualCache" 这是默认的二级缓存的实现类
+    要整合cache框架就 在这里给type 指定一个框架给的实现类 就整合好了
+   -->
+  <cache>
+    
+  </cache>
+  
+  <!-- 
+       statement 可以对缓存进行设置
+       useCache="false" 禁用缓存(有些每次都要查询出最新的业务如查看修改) 默认是false 
+       flushCache="true" 刷新缓存即清空缓存 默认是true (如为false 就算是commit了 缓存也不会清空还是从缓存中取)
+  -->
+  <select id="findUserById" parameterType="int" resultType="UserInfoL2PO">
+    select * from user_info where uuid=#{id}
+  </select>
+</mapper> 

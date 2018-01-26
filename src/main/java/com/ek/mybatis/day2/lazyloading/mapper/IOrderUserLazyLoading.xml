@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ek.mybatis.day2.lazyloading.mapper.IOrderUserLazyLoading">
+
+  <select id="findUserById" parameterType="int" resultType="UsersLazy">
+    select * from m_users where id=#{id}
+  </select> 
+
+  <resultMap type="OrdersLazy" id="orderUserLazyResultMap">
+    <id column="id" property="id"/>
+    <result column="user_id" property="userId"/>
+    <result column="number" property="number"/>
+    <result column="createtime" property="createTime"/>
+    <result column="note" property="note"/>
+    
+    <association property="users" javaType="UsersLazy" select="findUserById"  column="user_id">
+      <!-- 实现延迟加载这里的映射配置都不要了 在上面用select 和 column -->
+      <!-- select 延迟加载需要执行的statement的id(根据user_id去查询用户信息的statement) 
+           column 定单信息表中关联用户信息表的列(外键),user_id
+      -->
+    </association>
+  </resultMap>
+
+  <select id="findOrdersUserLazy" resultMap="orderUserLazyResultMap">
+    SELECT * FROM m_orders
+  </select>
+</mapper>

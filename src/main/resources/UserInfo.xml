@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 命名空间作用是对sql进行分类化管理,理解sql隔离 使用mapper代理方法开发; 
+namespace有特殊重要的作用 -->
+<mapper namespace="test">
+  <!-- 在映射文件中配置sql语句 -->
+  
+  
+  
+  <!-- 通过select查询数据库
+  id:标识映射文件中的sql,
+  将sql语句封装到mappedStatement对象中,所以将id称为statement的id
+  #{}表示一个占位符 
+  parameterType(输入参数的类型) 指定uuid在数据库的类型
+  #{id}其中的id表示接收输入的参数,参数名称就是id,如果输入参数是简单类型,#{}中的参数名可以任意,可以是value或其它名称
+  resultType(输出参数的类型) 指定sql输出结果所映射的java对象类型,select指定resultType表示将单条记录映射成java对象
+   -->
+  <select id="findUserById" parameterType="int" resultType="com.ek.mybatis.day1.pojo.UserInfo">
+    select * from user_info where uuid = #{value}
+  </select>
+  
+  
+  
+  
+  
+  <!-- 根据用户名称模糊查询 
+  #{value} 使用占位符 传参数的时候用 %e%
+  ${} 表示拼接sql串, 将接收到的参数不加任何修饰拼接在sql中 不是占位符可能会引起sql注入,不安全不建议用
+  使用${} 传入的参数是简单类型的话 只能使用 value
+  -->
+  <select id="findUserByName" parameterType="java.lang.String" resultType="com.ek.mybatis.day1.pojo.UserInfo">
+    select * from user_info where user_name like '%${value}%'
+  </select>
+  
+  
+  
+  
+  
+  <!-- 新增 通过ognl获取属性值 (就是struts的ognl)-->
+  <insert id="insertUser" parameterType="com.ek.mybatis.day1.pojo.UserInfo" >
+    <!-- 把插入数据的主键返回 keyProperty: 返回值赋给哪个属性 ,  order: 相对于insert来说selectKey的执行顺序-->
+    <selectKey keyProperty="uuid" resultType="java.lang.Integer" order="AFTER">
+      select LAST_INSERT_ID() <!-- 只适用于自增主键 -->
+    </selectKey>
+    insert into user_info(user_name, birthday, sex)values(#{userName},#{birthday},#{sex})
+  </insert>
+  
+  
+  
+  
+  
+  <!-- 修改 -->
+  <update id="updateUser" parameterType="com.ek.mybatis.day1.pojo.UserInfo">
+    update user_info set user_name=#{userName}, birthday=#{birthday}, sex=#{sex} where uuid=#{uuid}
+  </update>
+  
+
+
+
+  
+  <!-- 删除 -->
+  <delete id="deleteUser" parameterType="java.lang.Integer">
+    delete from user_info where uuid=#{id}
+  </delete>  
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ek.mybatis.day2.one2many.mapper.IOrderUserDetails">
+
+  <!-- 一对多 -->
+
+  <resultMap type="OrdersO2M" id="orderUserDetailsResultMap">
+    <!-- 订单信息 -->
+    <id column="id" property="id" />
+    <result column="user_id" property="userId" />
+    <result column="number" property="number" />
+    <result column="createtime" property="createTime" />
+    <result column="note" property="note" />
+    <!-- 用户信息 -->
+    <association property="users" javaType="UsersO2M">
+      <id column="user_id" property="id" />
+      <result column="username" property="userName" />
+      <result column="birthday" property="birthday" />
+      <result column="sex" property="sex" />
+      <result column="address" property="address" />
+    </association>
+    <!-- 订单明细信息 订单到订单明细 是一对多(映射到集合中) -->
+    <collection property="orderDetails" ofType="OrderDetailO2M">
+      <id column="detail_id" property="id"/>
+      <result column="orders_id" property="ordersId"/>
+      <result column="items_id" property="itemsId"/>
+      <result column="items_num" property="itemsNum"/>
+    </collection>
+  </resultMap>
+
+
+
+  <select id="findOrderUserDetails" resultMap="orderUserDetailsResultMap">
+    SELECT
+    orders.*,
+    users.username, users.sex, users.address, users.birthday,
+    detail.id detail_id,  detail.orders_id, detail.items_id,  detail.items_num
+    FROM
+    m_orders orders,
+    m_users users,
+    m_orderdetail detail
+    WHERE orders.user_id = users.id AND detail.orders_id = orders.id
+  </select>
+</mapper>

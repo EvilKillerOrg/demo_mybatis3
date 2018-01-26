@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 
+1. 在mapper.xml中 namespace等于mapper接口的地址(全限定名)
+2. mapper接口中的方法名要和mapper.xml 中的statement的id一致
+3. mapper接口中的方法输入参数类型要和mapper.xml 中statement的parameterType指定的类型一致
+4. mapper接口中的返回值的类型要和mapper.xml 中statement的resultType指定的类型一致
+ -->
+<mapper namespace="com.ek.mybatis.day1.mapper.IUserInfoMapper">
+  
+  
+  
+  <!-- 根据id查询用户信息 -->
+  <select id="findUserById" parameterType="int" resultType="com.ek.mybatis.day1.pojo.UserInfo">
+    select * from user_info where uuid = #{value}
+  </select>
+  
+  
+  
+  
+  
+  <!-- 根据姓名查询用户信息 业务需要返回列表-->
+  <select id="findUserByName" parameterType="java.lang.String" resultType="com.ek.mybatis.day1.pojo.UserInfo">
+    select * from user_info where user_name like #{value} <!-- like '%${value}%' 没有预处理不推荐 -->
+  </select> 
+  
+  
+  
+  
+  
+   <!-- 添加用户信息 -->
+  <insert id="insertUser" parameterType="com.ek.mybatis.day1.pojo.UserInfo" >
+    <selectKey keyProperty="uuid" resultType="java.lang.Integer" order="AFTER">
+      select LAST_INSERT_ID() <!-- 只适用于自增主键 -->
+    </selectKey>
+    insert into user_info(user_name, birthday, sex)values(#{userName},#{birthday},#{sex})
+  </insert>
+  
+  
+  
+  
+  
+  <!-- 修改 -->
+  <update id="updateUser" parameterType="com.ek.mybatis.day1.pojo.UserInfo">
+    update user_info set user_name=#{userName}, birthday=#{birthday}, sex=#{sex} where uuid=#{uuid}
+  </update>
+  
+
+
+
+  
+  <!-- 删除 -->
+  <delete id="deleteUser" parameterType="java.lang.Integer">
+    delete from user_info where uuid=#{id}
+  </delete>
+  
+  
+  
+  
+  
+  <!-- 综合查询 -->
+  <select id="findUserList" parameterType="UserQueryVO" resultType="UserCustom"><!-- 从这开始后面都用了别名 -->
+    select * from user_info u where u.sex = #{userCustom.sex} and u.user_name like #{userCustom.userName} <!-- 这的userCustom.xx是指UserQueryVO中的userCustom,名字要和UserQueryVO中的userCustom一致 -->
+  </select> 
+  
+  
+  
+  
+  
+  <!-- 综合查询总记录数 -->
+  <select id="findUserCount" parameterType="UserQueryVO" resultType="int">
+    select count(*) from user_info u where u.sex = #{userCustom.sex} and u.user_name like #{userCustom.userName}
+  </select>
+  
+  
+  
+  
+  
+  <!-- 用resultType的时候 po属性名要和数据库字段名一致 , 如果不一致用resultMap映射列名和属性名的关系 如果resultMap定义在其它mapper.xml里要加namespace -->
+  <!-- type是需要映射的类(可以用别名) id是一个唯一标识 -->
+  <resultMap type="UserInfo" id="userResultMap">
+    <!-- id对查询结果集中的唯一标识(主键)进行映射 column是列名 , property是pojo属性名-->
+    <id column="id_" property="uuid"/>
+    <!-- result对普通列进行映射 -->
+    <result column="un_" property="userName"/>
+    <result column="s_" property="Sex"/>
+  </resultMap>
+  <select id="findUserInResultMap" resultMap="userResultMap">
+    select uuid id_ , user_name un_ , sex s_ from  user_info
+  </select>
+  
+  
+  
+  
+  
+  <!-- 动态sql 对查询条件进行判断, 如果参数不为空才进行查询条件拼接 -->
+  <select id="findUserListDynamicSql" parameterType="UserQueryVO" resultType="UserCustom">
+    select * from user_info u 
+    <where> <!-- where可以自动的去掉条件中的第一个and 就不用写1=1了 -->
+      <if test="userCustom!=null">
+        <if test="userCustom.sex!=null and userCustom.sex!=''">
+          and u.sex = #{userCustom.sex} 
+        </if>
+        <if test="userCustom.userName!=null and userCustom.userName!=''">
+          and u.user_name like #{userCustom.userName} 
+        </if>
+      </if> 
+    </where>
+  </select> 
+  
+  
+  
+  
+  
+  <!-- sql片段 把动态sql判断代码块抽取出来,组成一个sql片段. 其他的statement就可以来引用这个sql片段(可重用性) -->
+  <!-- 定义sql片段 id:唯一标识 -->
+  <!-- 经验:1.是基于单表来定义sql片段,这样的话sql可重用性才高 2.sql片段不要包含where-->
+  <sql id="query_user">
+    <if test="userCustom!=null">
+      <if test="userCustom.sex!=null and userCustom.sex!=''">
+         and u.sex = #{userCustom.sex} 
+      </if>
+      <if test="userCustom.userName!=null and userCustom.userName!=''">
+         and u.user_name like #{userCustom.userName} 
+      </if>
+    </if> 
+  </sql>
+  <select id="findUserCountSqlpd" parameterType="UserQueryVO" resultType="int">
+    select count(*) from user_info u
+    <where>
+      <!-- 引用sql片段 不在本mapper.xml要加所在的namespace -->
+      <include refid="query_user"></include>
+    </where>
+  </select>
+ 
+ 
+ 
+ 
+ 
+ <!-- foreach 向sql传递数组或list 用foreach解析 
+  如: select * from user_info where 1=1 and (uuid=1 or uuid=2 or uuid=3) and...
+      select * from user_info where 1=1 and uuid in (1,2,3) and...
+ -->
+ <sql id="query_foreach">
+  <if test="userCustom!=null">
+    <if test="userCustom.userName!=null and userCustom.userName!=''">
+      and u.user_name like #{userCustom.userName}
+    </if>
+    <if test="uuids!=null">
+      <!-- 遍历uuids  collection:要遍历的对象, item:遍历生成的对象, open:遍历开始时需要拼接的, close:遍历结束时需要拼接的, separator:遍历出来的两个对象之间需要拼接的 -->
+      <!-- 拼接出的sql是这样的: and (uuid=1 or uuid=2 or uuid=3)   -->
+      <!-- 这意思就是 遍历开始的时候先加上"and(", 然后加上遍历出来的内容, 再给遍历出来的内容每两个中间加上"or" 遍历完再给最后加上")" -->
+      <!-- 要拼接 and in(1,2,3) 就这样: open="and uuid in (" close=")" separator="," 遍历的内容就是: #{user_uuid}-->
+      <foreach collection="uuids" item="user_uuid" open="and (" close=")" separator="or"> 
+        u.uuid=#{user_uuid} <!-- 在这拼接遍历出来的内容 -->
+      </foreach>
+    </if>
+  </if>
+ </sql>
+ <!-- 这里还要映射一下user_name 和 userName 不然查出来用户名是null-->
+ <resultMap type="UserCustom" id="userNameResultMap">
+  <result column="user_name" property="userName"/>
+ </resultMap>
+ <select id="findUserForeach" parameterType="UserQueryVO" resultMap="userNameResultMap">
+  select * from user_info u
+  <where>
+    <include refid="query_foreach"></include>
+  </where>  
+ </select>
+</mapper>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

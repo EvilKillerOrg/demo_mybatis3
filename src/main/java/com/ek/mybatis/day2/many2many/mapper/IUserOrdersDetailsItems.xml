@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ek.mybatis.day2.many2many.mapper.IUserOrdersDetailsItems">
+
+  <!-- 多对多 -->
+
+
+  <resultMap type="UsersM2M" id="userOrdersDetailsItemsResultMap">
+    <!-- 用户信息 -->
+    <id column="users_id" property="id" />
+    <result column="users_username" property="userName" />
+    <result column="users_sex" property="sex" />
+    <result column="users_birthday" property="birthday" />
+    <result column="users_address" property="address" />
+
+    <!-- 订单信息 用户到订单 一对多 (订单套在user里) -->
+    <collection property="ordersList" ofType="OrdersM2M">
+      <id column="orders_id" property="id" />
+      <result column="users_id" property="userId" />
+      <result column="orders_number" property="number" />
+      <result column="orders_createtime" property="createTime" />
+      <result column="orders_note" property="note" />
+
+      <!-- Orders到OrderDetail 一对多 (订单明细再套在订单里) -->
+      <collection property="orderDetailList" ofType="OrderDetailM2M">
+        <id column="detail_id" property="id" />
+        <result column="orders_id" property="ordersId" />
+        <result column="items_id" property="itemsId" />
+        <result column="detail_items_num" property="itemsNum" />
+
+        <!-- 一个商品(items)对应一条明细(OrderDetail) 一对一 (商品再套在明细里) -->
+        <association property="items" javaType="ItemsM2M">
+          <id column="items_id" property="id" />
+          <result column="items_name" property="name" />
+          <result column="items_detail" property="detail" />
+          <result column="items_price" property="price" />
+          <result column="items_pic" property="pic" />
+          <result column="items_createtime" property="createTime" />
+        </association>
+      </collection>
+    </collection>
+  </resultMap>
+ 
+
+  <select id="findUserOrdersDetailsItems" resultMap="userOrdersDetailsItemsResultMap">
+    SELECT 
+      users.id users_id, users.username users_username, users.sex users_sex, users.birthday users_birthday, users.address users_address,
+      orders.id orders_id, orders.number orders_number, orders.createtime orders_createtime, orders.note orders_note,  
+      detail.id detail_id, detail.items_num detail_items_num,
+      items.id items_id, items.name items_name, items.detail items_detail, items.price items_price , items.createtime items_createtime, items.pic items_pic
+    FROM 
+      m_users users,
+      m_orders orders,
+      m_orderdetail detail,
+      m_items items
+    WHERE orders.user_id = users.id AND detail.orders_id = orders.id AND items.id = detail.items_id
+  </select>
+
+</mapper>
